@@ -1,6 +1,22 @@
+/*============================================================================
+ * FILE:    scriptures.js
+ * AUTHOR:  Abhishek Amalaraj
+ * DATE:    Winter 2020
+ *
+ * DESCRIPTION: Front-end JavaScript code for The Scriptures, Mapped.
+ *              IS 542, Winter 2020, BYU.
+ */
+/*jslint
+    browser: true
+    long: true */
+/*global console, google, map, XMLHttpRequest */
 /*property
-    books, forEach, init, maxBookId, minBookId, onerror, onload, open, parse,
-    push, response, send, status
+    Animation, DROP, Marker, animation, books, classKey, clearTimeout, content,
+    exec, forEach, fullName, getAttribute, getElementById, google, gridName,
+    hash, href, id, init, innerHTML, lat, length, lng, log, map, maps,
+    maxBookId, minBookId, numChapters, onHashChanged, onerror, onload, open,
+    parse, position, push, querySelectorAll, response, send, setMap, setTimeout,
+    slice, split, status, title, tocName
 */
 
 const Scriptures = (function () {
@@ -63,7 +79,7 @@ const Scriptures = (function () {
     /*------------------------------------------------------------------------
      *              PRIVATE METHOD DECLARATIONS
      */
-    ajax = function (url, successCallback, failureCallback) {
+    ajax = function (url, successCallback, failureCallback, skipJsonParse) {
         let request = new XMLHttpRequest();
         request.open(REQUEST_GET, url, true);
 
@@ -166,15 +182,15 @@ const Scriptures = (function () {
         return gridContent;
     };
 
-    encodedScripturesUrlParameters = function(bookId, chapter, verses, isJst) {
+    encodedScripturesUrlParameters = function (bookId, chapter, verses, isJst) {
         if (bookId !== undefined && chapter !== undefined) {
             let options = "";
 
-            if (verses !== undefined ){
+            if (verses !== undefined) {
                 options += verses;
             }
 
-            if (isJst !== undefined){
+            if (isJst !== undefined) {
                 options += "&jst=JST";
             }
 
@@ -183,11 +199,11 @@ const Scriptures = (function () {
 
     };
 
-    getScripturesCallback = function(chapterHtml) {
+    getScripturesCallback = function (chapterHtml) {
         document.getElementById(DIV_SCRIPTURES).innerHTML = chapterHtml;
 
     };
-    getScripturesFailure = function() {
+    getScripturesFailure = function () {
         console.log("Unable to retrieve chapter content from server.")
 
     };
@@ -293,12 +309,43 @@ const Scriptures = (function () {
 
 
     navigateHome = function (volumeId) {
-        document.getElementById("scriptures"), innerHTML =
+        document.getElementById("scriptures") =
             "<div>The Old Testament</div>" +
             "<div>The New Testament</div>" +
             "<div>Book of Mormon</div>" +
             "<div>Doctrine and Covenants</div>" +
             "<div>Pearl of Great price</div>" + volumeId
+    };
+
+    nextChapter = function (bookId, chapter) {
+        let book = books[bookId];
+
+        if (book !== undefined) {
+
+            if (chapter < book.numChapters) {
+                return [
+                    bookId,
+                    chapter + 1,
+                    titleForBookChapter(bookId, chapter + 1)
+                ];
+            }
+            let nextBook = books[bookId + 1];
+
+            if (nextBook !== undefined) {
+                let nextChapterValue = 0;
+
+                if (nextBook.numChapters > 0) {
+                    nextChapterValue = 1;
+                }
+                return [
+                    nextBook.id,
+                    nextChapterValue,
+                    titleForBookChapter(nextBook, nextChapterValue)
+                ];
+            }
+
+        }
+
     };
 
     onHashChanged = function () {
@@ -341,27 +388,44 @@ const Scriptures = (function () {
 
 
         };
-        volumeGridContent = function (volumeId) {
-            let gridContent = "";
+    };
 
-            volumes.forEach(function (volume) {
-                if (volumeId === undefined || volumeId === volume.id) {
-                    gridContent += htmlDiv({
-                        classKey: CLASS_VOLUME,
-                        content: htmlAnchor(volume) + htmlElement(TAG_VOLUME_HEADER, volume.fullName)
-                    });
+    previousChapter = function (bookId, chapter) {
 
-                    gridContent += booksGrid(volume);
-                }
-            });
+    };
 
-            return gridContent + BOTTOM_PADDING;
+    titleForBookChapter = function (bookId, chapter) {
+
+        let book = books[bookId];
+
+        if (book !== undefined) {
+            if (chapter > 0) {
+                return `${book.tocName} ${chapter}`;
+            }
+            return book.tocName;
         }
-        /*------------------------------------------------------------------------
-         *              PUBLIC METHODS
-         */
-        return {
-            init,
-            onHashChanged
-        };
-    }();
+    };
+    volumesGridContent = function (volumeId) {
+        let gridContent = "";
+
+        volumes.forEach(function (volume) {
+            if (volumeId === undefined || volumeId === volume.id) {
+                gridContent += htmlDiv({
+                    classKey: CLASS_VOLUME,
+                    content: htmlAnchor(volume) + htmlElement(TAG_VOLUME_HEADER, volume.fullName)
+                });
+
+                gridContent += booksGrid(volume);
+            }
+        });
+
+        return gridContent + BOTTOM_PADDING;
+    }
+    /*------------------------------------------------------------------------
+     *              PUBLIC METHODS
+     */
+    return {
+        init,
+        onHashChanged
+    };
+}());
