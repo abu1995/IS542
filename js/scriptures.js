@@ -274,8 +274,8 @@ const Scriptures = (function () {
         if (parameters.classKey !== undefined) {
             classString = ` class="${parameters.classKey}"`;
         }
-        if (parameters.constant !== undefined) {
-            contentString = parameters.constant;
+        if (parameters.content !== undefined) {
+            contentString = parameters.content;
         }
         if (parameters.href !== undefined) {
             hrefString = ` href="${parameters.href}"`;

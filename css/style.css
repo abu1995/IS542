@@ -20,11 +20,12 @@ img {
 
 #header {
     position: absolute;
+    font-family: cursive;
     top: 0;
     left: 0;
     right: 0;
-    background-color: #3f2000;
-    color: white;
+    background-color: navy;
+    color: yellow;
     height: 56px;
     display: flex;
     flex-direction: row;
