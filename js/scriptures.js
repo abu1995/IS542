@@ -46,6 +46,11 @@ const Scriptures = (function () {
     const URL_BOOKS = "https://scriptures.byu.edu/mapscrip/model/books.php";
     const URL_SCRIPTURES = "https://scriptures.byu.edu/mapscrip/mapgetscrip.php";
     const URL_VOLUMES = "https://scriptures.byu.edu/mapscrip/model/volumes.php";
+    const CLASS_PREVNEXT_BUTTTON= "nextprev";
+    const CLASS_NAV_HEADING="navheading";
+    const CLASS_NAV_HEADING_ICONS="material-icons";
+    const CONTENT_PREVIOUS_ICON="skip_previous";
+    const CONTENT_NEXT_ICON="skip_next";
     /*------------------------------------------------------------------------
      *              PRIVATE VARIABLES
      */
@@ -53,6 +58,8 @@ const Scriptures = (function () {
     let gmMarkers = [];
     let retryDelay = 500;
     let volumes;
+    let actual_book;
+    let actual_chapter;
 
     /*------------------------------------------------------------------------
      *              PRIVATE METHOD DECLARATIONS
@@ -83,20 +90,25 @@ const Scriptures = (function () {
     let setupMarkers;
     let titleForBookChapter;
     let volumesGridContent;
+    let iconAction;
+    let prevNext;
+   
+  
+
 
     /*------------------------------------------------------------------------
      *              PRIVATE METHOD DECLARATIONS
      */
-    addMarker=function(placename,latitude,longitude){	
+    addMarker = function (placename, latitude, longitude) {
         // NEEDSWORK: check to see if we already have this latitude/longitude	
         //    in the gmMarkers array.	
-        let marker = new google.maps.Marker({	
-            position: {lat: Number(latitude), lng: Number(longitude)},	
-            map,	
-            title: placename,	
-            animation: google.maps.Animation.DROP	
-        });	
-        gmMarkers.push(marker);	
+        let marker = new google.maps.Marker({
+            position: { lat: Number(latitude), lng: Number(longitude) },
+            map,
+            title: placename,
+            animation: google.maps.Animation.DROP
+        });
+        gmMarkers.push(marker);
     };
 
     ajax = function (url, successCallback, failureCallback, skipJsonParse) {
@@ -203,12 +215,12 @@ const Scriptures = (function () {
         return gridContent;
     };
 
-    clearMarkers = function () {	
-        gmMarkers.forEach(function (marker) {	
-            marker.setMap(null);	
-        });	
-        gmMarkers = [];	
-    };	
+    clearMarkers = function () {
+        gmMarkers.forEach(function (marker) {
+            marker.setMap(null);
+        });
+        gmMarkers = [];
+    };
 
     encodedScripturesUrlParameters = function (bookId, chapter, verses, isJst) {
         if (bookId !== undefined && chapter !== undefined) {
@@ -221,16 +233,62 @@ const Scriptures = (function () {
             if (isJst !== undefined) {
                 options += "&jst=JST";
             }
+            actual_book= bookId;
+            actual_chapter=chapter;
 
             return `${URL_SCRIPTURES}?book=${bookId}&chap=${chapter}&verses${options}`;
         }
 
     };
+    prevNext= function (){
+        console.log("hola")
+        let element_content =htmlDiv({
+          classKey:CLASS_PREVNEXT_BUTTTON,
+          content:htmlLink({
+            content:htmlElement("i",CONTENT_PREVIOUS_ICON,CLASS_NAV_HEADING_ICONS)
+          })+htmlLink({
+            content:htmlElement("i",CONTENT_NEXT_ICON, CLASS_NAV_HEADING_ICONS)
+          })
+        });
+        let onlyClassArray= document.getElementsByClassName(CLASS_NAV_HEADING);
+        Array.from(onlyClassArray).forEach(function(onlyClass){
+          onlyClass.innerHTML += element_content;
+        });
+        let icon_Elements= document.getElementsByClassName(CLASS_NAV_HEADING_ICONS);
+        let icon_prevs =Array.prototype.filter.call(icon_Elements, function(icon_Element){
+            return icon_Element.innerHTML === CONTENT_PREVIOUS_ICON;
+        });
+        let icon_next=Array.prototype.filter.call(icon_Elements, function(icon_Element){
+            return icon_Element.innerHTML === CONTENT_NEXT_ICON;
+        });
+        icon_prevs.forEach(function(element){
+          element.addEventListener("click",function(){
+            iconAction(previousChapter);
+          });
+        });
+        icon_next.forEach(function(element){
+          element.addEventListener("click",function(){
+            iconAction(nextChapter);
+          });
+        });
+      };
+      iconAction = function(chapterCallback){
+        let arrayChapter = chapterCallback(actual_book, actual_chapter);
+        if(arrayChapter !== undefined){
+          let book_id=arrayChapter[0];
+          let chapter_id= arrayChapter[1];
+          let volumeId =location.hash.slice(1).split(":")[0];
+          let url="#"+volumeId+":"+book_id+":"+chapter_id;
+          console.log(url);
+          window.location.hash=url
+        }
+      };
 
     getScripturesCallback = function (chapterHtml) {
         document.getElementById(DIV_SCRIPTURES).innerHTML = chapterHtml;
 
         setupMarkers();
+        prevNext();
 
     };
     getScripturesFailure = function () {
@@ -261,9 +319,20 @@ const Scriptures = (function () {
         return `<div${idString}${classString}>${contentString}</div>`;
     };
 
-    htmlElement = function (tagName, content) {
-        return `<${tagName}>${content}</${tagName}>`;
-    };
+    htmlElement = function (tagName,content,classString,idString) {
+        if(idString == undefined && classString == undefined){ //addition
+          return `<${tagName}>${content}</${tagName}>`;
+        }//addition
+        if(classString !==undefined){
+          let class_item= ` class=${classString}`;
+          return `<${tagName}${class_item}>${content}</${tagName}>`;
+        }
+        //addition
+        if(idString !==undefined){
+          let id_item= ` id=${idString}`;
+          return `<${tagName}${id_item}>${content}</${tagName}>`;
+        }
+      };
 
     htmlLink = function (parameters) {
         let classString = "";
@@ -288,7 +357,7 @@ const Scriptures = (function () {
     };
 
     init = function (onInitializedCallback) {
-       
+
         let booksLoaded = false;
         let volumesLoaded = false;
 
@@ -337,6 +406,7 @@ const Scriptures = (function () {
     };
 
 
+
     nextChapter = function (bookId, chapter) {
         let book = books[bookId];
 
@@ -367,6 +437,8 @@ const Scriptures = (function () {
         }
 
     };
+
+    
 
     onHashChanged = function () {
         let ids = [];
@@ -406,22 +478,43 @@ const Scriptures = (function () {
         }
     };
 
+    
+
+
     // Book ID and chapter must be integers
     // Returns undefined if there is no previous chapter
     // Otherwise returns an array with the previous book ID, chapter, and title
     previousChapter = function (bookId, chapter) {
-        // Get the book for the given bookId.  If it exists (i.e. it’s not undefined):
-        //     If chapter > 1, it’s the easy case.  Just return same bookId,
-        //         chapter - 1, and the title string for that book/chapter combo.
-        //     Otherwise we need to see if there’s a previous book:
-        //         Get the book for bookId - 1.  If it exists:
-        //             Return bookId - 1, the last chapter of that book, and the
-        //                     title string for that book/chapter combo.
-        // If we didn’t already return a 3-element array of bookId/chapter/title,
-        //     at this point just drop through to the bottom of the function.  We’ll
-        //     return undefined by default, meaning there is no previous chapter.
-        console.log(bookId, chapter);
+        let book = books[bookId];
+
+        if (book !== undefined) {
+
+            if (chapter < book.numChapters) {
+                return [
+                    bookId,
+                    chapter - 1,
+                    titleForBookChapter(book, chapter - 1)
+                ];
+            }
+            let prevBook = books[bookId - 1];
+
+            if (nextBook !== undefined) {
+                let nextChapterValue = 0;
+
+                if (nextBook.numChapters > 0) {
+                    nextChapterValue = 1;
+                }
+                return [
+                    prevBook.id,
+                    nextChapterValue,
+                    titleForBookChapter(nextBook, nextChapterValue)
+                ];
+            }
+
+        }
+
     };
+
 
     setupMarkers = function () {
         if (window.google === undefined) {

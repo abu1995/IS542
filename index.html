@@ -6,6 +6,8 @@
     <meta name="author" content="Your Name Here">
 
     <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet">
     <script src="js/scriptures.js" type="text/javascript"></script>
 </head>
 <body>
@@ -32,6 +34,7 @@
         ready(function () {
             Scriptures.init(() => { Scriptures.onHashChanged(); });
             window.addEventListener("hashchange", Scriptures.onHashChanged);
+
         });
 
         let map;
