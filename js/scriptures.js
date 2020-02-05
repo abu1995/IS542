@@ -46,11 +46,11 @@ const Scriptures = (function () {
     const URL_BOOKS = "https://scriptures.byu.edu/mapscrip/model/books.php";
     const URL_SCRIPTURES = "https://scriptures.byu.edu/mapscrip/mapgetscrip.php";
     const URL_VOLUMES = "https://scriptures.byu.edu/mapscrip/model/volumes.php";
-    const CLASS_PREVNEXT_BUTTTON= "nextprev";
-    const CLASS_NAV_HEADING="navheading";
-    const CLASS_NAV_HEADING_ICONS="material-icons";
-    const CONTENT_PREVIOUS_ICON="skip_previous";
-    const CONTENT_NEXT_ICON="skip_next";
+    const CLASS_PREVNEXT_BUTTTON = "nextprev";
+    const CLASS_NAV_HEADING = "navheading";
+    const CLASS_NAV_HEADING_ICONS = "material-icons";
+    const CONTENT_PREVIOUS_ICON = "skip_previous";
+    const CONTENT_NEXT_ICON = "skip_next";
     /*------------------------------------------------------------------------
      *              PRIVATE VARIABLES
      */
@@ -64,6 +64,7 @@ const Scriptures = (function () {
     /*------------------------------------------------------------------------
      *              PRIVATE METHOD DECLARATIONS
      */
+    //let showLocation;
     let addMarker;
     let ajax;
     let bookChapterValid;
@@ -92,8 +93,8 @@ const Scriptures = (function () {
     let volumesGridContent;
     let iconAction;
     let prevNext;
-   
-  
+
+
 
 
     /*------------------------------------------------------------------------
@@ -109,7 +110,17 @@ const Scriptures = (function () {
             animation: google.maps.Animation.DROP
         });
         gmMarkers.push(marker);
+
+        google.maps.event.addListener(marker, 'mouseover', function () {
+            infowindow.setContent(html);
+            infowindow.open(map, marker);
+        });
+
+        google.maps.event.addListener(marker, 'mouseout', function () {
+            infowindow.close();
+        });
     };
+
 
     ajax = function (url, successCallback, failureCallback, skipJsonParse) {
         let request = new XMLHttpRequest();
@@ -233,56 +244,56 @@ const Scriptures = (function () {
             if (isJst !== undefined) {
                 options += "&jst=JST";
             }
-            actual_book= bookId;
-            actual_chapter=chapter;
+            actual_book = bookId;
+            actual_chapter = chapter;
 
             return `${URL_SCRIPTURES}?book=${bookId}&chap=${chapter}&verses${options}`;
         }
 
     };
-    prevNext= function (){
+    prevNext = function () {
         console.log("hola")
-        let element_content =htmlDiv({
-          classKey:CLASS_PREVNEXT_BUTTTON,
-          content:htmlLink({
-            content:htmlElement("i",CONTENT_PREVIOUS_ICON,CLASS_NAV_HEADING_ICONS)
-          })+htmlLink({
-            content:htmlElement("i",CONTENT_NEXT_ICON, CLASS_NAV_HEADING_ICONS)
-          })
+        let element_content = htmlDiv({
+            classKey: CLASS_PREVNEXT_BUTTTON,
+            content: htmlLink({
+                content: htmlElement("i", CONTENT_PREVIOUS_ICON, CLASS_NAV_HEADING_ICONS)
+            }) + htmlLink({
+                content: htmlElement("i", CONTENT_NEXT_ICON, CLASS_NAV_HEADING_ICONS)
+            })
         });
-        let onlyClassArray= document.getElementsByClassName(CLASS_NAV_HEADING);
-        Array.from(onlyClassArray).forEach(function(onlyClass){
-          onlyClass.innerHTML += element_content;
+        let onlyClassArray = document.getElementsByClassName(CLASS_NAV_HEADING);
+        Array.from(onlyClassArray).forEach(function (onlyClass) {
+            onlyClass.innerHTML += element_content;
         });
-        let icon_Elements= document.getElementsByClassName(CLASS_NAV_HEADING_ICONS);
-        let icon_prevs =Array.prototype.filter.call(icon_Elements, function(icon_Element){
+        let icon_Elements = document.getElementsByClassName(CLASS_NAV_HEADING_ICONS);
+        let icon_prevs = Array.prototype.filter.call(icon_Elements, function (icon_Element) {
             return icon_Element.innerHTML === CONTENT_PREVIOUS_ICON;
         });
-        let icon_next=Array.prototype.filter.call(icon_Elements, function(icon_Element){
+        let icon_next = Array.prototype.filter.call(icon_Elements, function (icon_Element) {
             return icon_Element.innerHTML === CONTENT_NEXT_ICON;
         });
-        icon_prevs.forEach(function(element){
-          element.addEventListener("click",function(){
-            iconAction(previousChapter);
-          });
+        icon_prevs.forEach(function (element) {
+            element.addEventListener("click", function () {
+                iconAction(previousChapter);
+            });
         });
-        icon_next.forEach(function(element){
-          element.addEventListener("click",function(){
-            iconAction(nextChapter);
-          });
+        icon_next.forEach(function (element) {
+            element.addEventListener("click", function () {
+                iconAction(nextChapter);
+            });
         });
-      };
-      iconAction = function(chapterCallback){
+    };
+    iconAction = function (chapterCallback) {
         let arrayChapter = chapterCallback(actual_book, actual_chapter);
-        if(arrayChapter !== undefined){
-          let book_id=arrayChapter[0];
-          let chapter_id= arrayChapter[1];
-          let volumeId =location.hash.slice(1).split(":")[0];
-          let url="#"+volumeId+":"+book_id+":"+chapter_id;
-          console.log(url);
-          window.location.hash=url
+        if (arrayChapter !== undefined) {
+            let book_id = arrayChapter[0];
+            let chapter_id = arrayChapter[1];
+            let volumeId = location.hash.slice(1).split(":")[0];
+            let url = "#" + volumeId + ":" + book_id + ":" + chapter_id;
+            console.log(url);
+            window.location.hash = url
         }
-      };
+    };
 
     getScripturesCallback = function (chapterHtml) {
         document.getElementById(DIV_SCRIPTURES).innerHTML = chapterHtml;
@@ -319,20 +330,20 @@ const Scriptures = (function () {
         return `<div${idString}${classString}>${contentString}</div>`;
     };
 
-    htmlElement = function (tagName,content,classString,idString) {
-        if(idString == undefined && classString == undefined){ //addition
-          return `<${tagName}>${content}</${tagName}>`;
+    htmlElement = function (tagName, content, classString, idString) {
+        if (idString == undefined && classString == undefined) { //addition
+            return `<${tagName}>${content}</${tagName}>`;
         }//addition
-        if(classString !==undefined){
-          let class_item= ` class=${classString}`;
-          return `<${tagName}${class_item}>${content}</${tagName}>`;
+        if (classString !== undefined) {
+            let class_item = ` class=${classString}`;
+            return `<${tagName}${class_item}>${content}</${tagName}>`;
         }
         //addition
-        if(idString !==undefined){
-          let id_item= ` id=${idString}`;
-          return `<${tagName}${id_item}>${content}</${tagName}>`;
+        if (idString !== undefined) {
+            let id_item = ` id=${idString}`;
+            return `<${tagName}${id_item}>${content}</${tagName}>`;
         }
-      };
+    };
 
     htmlLink = function (parameters) {
         let classString = "";
@@ -438,7 +449,7 @@ const Scriptures = (function () {
 
     };
 
-    
+
 
     onHashChanged = function () {
         let ids = [];
@@ -478,7 +489,7 @@ const Scriptures = (function () {
         }
     };
 
-    
+
 
 
     // Book ID and chapter must be integers

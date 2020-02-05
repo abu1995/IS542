@@ -1,4 +1,2 @@
-# Project 1
-
-IS 542 Project 1: The Scriptures, Mapped
+Abhishek Amalaraj IS 542 Project 1 - The Scriptures Mapped ( JavaScript )
 
